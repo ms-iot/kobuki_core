@@ -1,11 +1,23 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(kobuki_ftdi)
 find_package(catkin REQUIRED COMPONENTS ecl_command_line)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-# pkg-config packages
-find_package(PkgConfig)
-pkg_search_module(libusb REQUIRED libusb)
-pkg_search_module(libftdi REQUIRED libftdi)
+if(MSVC)
+        find_package(libusb REQUIRED)
+        find_package(LibFTDI REQUIRED)
+        set(libusb_LIBRARIES ${LIBUSB_LIBRARIES})
+        set(libusb_INCLUDE_DIRS ${LIBUSB_INCLUDE_DIRS})
+        set(libftdi_LIBRARIES ${LIBFTDI_LIBRARIES})
+        set(libftdi_INCLUDE_DIRS ${LIBFTDI_INCLUDE_DIRS})
+else()
+        # pkg-config packages
+        find_package(PkgConfig)
+        pkg_search_module(libusb REQUIRED libusb)
+        pkg_search_module(libftdi REQUIRED libftdi)
+
+        # TODO: use find_package if pkg_search_module not found
+endif()
 
 catkin_package(
    INCLUDE_DIRS include
@@ -13,7 +25,7 @@ catkin_package(
    DEPENDS libusb libftdi
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${libftdi_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
 
 add_subdirectory(src)
 

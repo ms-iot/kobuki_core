@@ -55,7 +55,7 @@ Kobuki::Kobuki() :
     , is_alive(false)
     , version_info_reminder(0)
     , controller_info_reminder(0)
-    , heading_offset(0.0/0.0)
+    , heading_offset(NAN)
     , velocity_commands_debug(4, 0)
 {
 }

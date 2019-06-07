@@ -51,7 +51,7 @@
 #include <ecl/geometry/legacy_pose2d.hpp>
 #include <ecl/linear_algebra.hpp>
 
-#include "kobuki_dock_drive/state.hpp"
+#include "./state.hpp"
 
 /*****************************************************************************
 ** Namespaces
