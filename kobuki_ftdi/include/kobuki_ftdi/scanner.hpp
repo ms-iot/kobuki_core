@@ -42,12 +42,13 @@
 
 #include <vector>
 #include <map>
-#ifndef _WIN32
-#include <usb.h>
-#else
-#include <lusb0_usb.h>
-#endif
 #include <stdint.h>
+
+#if defined(_WIN32)
+#include <lusb0_usb.h>
+#else
+#include <usb.h>
+#endif
 
 /*****************************************************************************
  ** Definition

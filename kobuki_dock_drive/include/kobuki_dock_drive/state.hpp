@@ -47,17 +47,16 @@ namespace kobuki {
 
   // indicates the ir sensor from docking station
   struct DockStationIRState {
-    enum State
-    {
-      INVISIBLE = 0,
-      NEAR_LEFT = 1,
-      NEAR_CENTER = 2,
-      NEAR_RIGHT = 4,
-      FAR_CENTER = 8,
-      FAR_LEFT = 16,
-      FAR_RIGHT = 32,
-      NEAR_ALL = 7, // NEAR_LEFT + NEAR_CENTER + NEAR_RIGHT
-      FAR_ALL = 56, // FAR_CENTER + FAR_LEFT + FAR_RIGHT
+    enum State {
+      INVISIBLE=0,
+      NEAR_LEFT=1,
+      NEAR_CENTER=2,
+      NEAR_RIGHT=4,
+      FAR_CENTER=8,
+      FAR_LEFT=16,
+      FAR_RIGHT=32,
+      NEAR = 7, // NEAR_LEFT + NEAR_CENTER + NEAR_RIGHT
+      FAR = 56, // FAR_CENTER + FAR_LEFT + FAR_RIGHT
     };
   };
 

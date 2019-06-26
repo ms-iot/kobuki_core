@@ -258,7 +258,7 @@ namespace kobuki {
 
     if(mid)
     {
-      if(((mid & DockStationIRState::NEAR_ALL) == DockStationIRState::NEAR_CENTER) || ((mid & DockStationIRState::NEAR_ALL) == DockStationIRState::NEAR_ALL))
+      if(((mid & DockStationIRState::NEAR) == DockStationIRState::NEAR_CENTER) || ((mid & DockStationIRState::NEAR) == DockStationIRState::NEAR))
       {
         debug_str = "AlignedNearCenter";
         next_state = RobotDockingState::ALIGNED_NEAR;
@@ -277,7 +277,7 @@ namespace kobuki {
         next_vx = 0.05;
         next_wz = -0.1;
       }
-      else if(((mid & DockStationIRState::FAR_ALL) == DockStationIRState::FAR_CENTER) || ((mid & DockStationIRState::FAR_ALL) == DockStationIRState::FAR_ALL)) {
+      else if(((mid & DockStationIRState::FAR) == DockStationIRState::FAR_CENTER) || ((mid & DockStationIRState::FAR) == DockStationIRState::FAR)) {
         debug_str = "AlignedFarCenter";
         next_state = RobotDockingState::ALIGNED_FAR;
         next_vx = 0.1;
