@@ -1,32 +1,26 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(kobuki_ftdi)
 find_package(catkin REQUIRED COMPONENTS ecl_command_line)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-find_package(libusb QUIET)
-if(NOT libusb_FOUND)
-    # pkg-config packages
-    find_package(PkgConfig)
-    pkg_search_module(libusb REQUIRED libusb)
-else()
-    # this should only happen on WIN32
+if(WIN32)
+    # use vcpkg for dependencies on Windows
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+    find_package(libusb REQUIRED)
+    find_package(libftdi REQUIRED)
 
     # remap libusb's exported config variables to work with catkin_package's DEPEND argument
     set(libusb_LIBRARIES ${LIBUSB_LIBRARIES})
     set(libusb_INCLUDE_DIRS ${LIBUSB_INCLUDE_DIRS})
-endif()
-
-find_package(libftdi QUIET)
-if(NOT libftdi_FOUND)
-    # pkg-config packages
-    find_package(PkgConfig)
-    pkg_search_module(libftdi REQUIRED libftdi)
-else()
-    # this should only happen on WIN32
 
     # remap libftdi's exported config variables (vcpkg) to work with catkin_package's DEPEND argument
     set(libftdi_LIBRARIES $<TARGET_PROPERTY:libftdi::ftdi,IMPORTED_IMPLIB_RELEASE>)
     set(libftdi_INCLUDE_DIRS $<TARGET_PROPERTY:libftdi::ftdi,INTERFACE_INCLUDE_DIRECTORIES>)
+else()
+    # pkg-config packages
+    find_package(PkgConfig)
+    pkg_search_module(libusb REQUIRED libusb)
+    pkg_search_module(libftdi REQUIRED libftdi)
 endif()
 
 catkin_package(
