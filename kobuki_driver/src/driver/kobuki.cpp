@@ -177,7 +177,7 @@ void Kobuki::unlockDataAccess() {
 void Kobuki::spin()
 {
   ecl::TimeStamp last_signal_time;
-  ecl::Duration timeout(0.15);
+  ecl::Duration timeout(0.1);
   unsigned char buf[256];
 
   while (!shutdown_requested)
@@ -233,7 +233,8 @@ void Kobuki::spin()
     else
     {
       std::ostringstream ostream;
-      ostream << "kobuki_node : serial_read(" << n << ")" << ", packet_finder.numberOfDataToRead(" << packet_finder.numberOfDataToRead() << ")";
+      ostream << "kobuki_node : serial_read(" << n << ")"
+        << ", packet_finder.numberOfDataToRead(" << packet_finder.numberOfDataToRead() << ")";
       //sig_debug.emit(ostream.str());
       sig_named.emit(log("debug", "serial", ostream.str()));
       // might be useful to send this to a topic if there is subscribers
@@ -285,7 +286,6 @@ void Kobuki::spin()
           case Header::ThreeAxisGyro:
             if( !three_axis_gyro.deserialise(data_buffer) ) { fixPayload(data_buffer); break; }
             break;
-
           // the rest are only included on request
           case Header::Hardware:
             if( !hardware.deserialise(data_buffer) ) { fixPayload(data_buffer); break; }
@@ -575,6 +575,7 @@ void Kobuki::sendCommand(Command command)
     checksum ^= (command_buffer[i]);
 
   command_buffer.push_back(checksum);
+  //check_device();
   serial.write((const char*)&command_buffer[0], command_buffer.size());
 
   sig_raw_data_command.emit(command_buffer);

@@ -132,12 +132,10 @@ bool PacketFinderBase::update(const unsigned char * incoming, unsigned int numbe
 {
   // clearBuffer = 0, waitingForStx, waitingForPayloadSize, waitingForPayloadToEtx, waitingForEtx,
   // std::cout << "update [" << numberOfIncoming << "][" << state << "]" << std::endl;
-  if (numberOfIncoming <= 0)
-  {
+  if (!(numberOfIncoming > 0))
     return false;
-  }
 
-  bool found_packet = false;
+  bool found_packet(false);
 
   if ( state == clearBuffer ) {
     buffer.clear();
