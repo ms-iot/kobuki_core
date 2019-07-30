@@ -40,7 +40,8 @@
 
 #include <string>
 #include <csignal>
-#include <termios.h> // for keyboard input
+#include <unordered_map>
+
 #include <ecl/time.hpp>
 #include <ecl/threads.hpp>
 #include <ecl/sigslots.hpp>
@@ -48,6 +49,12 @@
 #include <ecl/linear_algebra.hpp>
 #include <ecl/geometry/legacy_pose2d.hpp>
 #include "kobuki_driver/kobuki.hpp"
+
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <termios.h> // for keyboard input
+#endif
 
 /*****************************************************************************
 ** Classes
@@ -110,8 +117,11 @@ private:
   void restoreTerminal();
   bool quit_requested;
   int key_file_descriptor;
-  struct termios original_terminal_state;
   ecl::Thread thread;
+
+#if !defined(_WIN32)
+  struct termios original_terminal_state;
+#endif
 };
 
 /*****************************************************************************
@@ -131,14 +141,19 @@ KobukiManager::KobukiManager() :
                          vx(0.0), wz(0.0),
                          slot_stream_data(&KobukiManager::processStreamData, *this)
 {
+#if !defined(_WIN32)
   tcgetattr(key_file_descriptor, &original_terminal_state); // get terminal properties
+#endif
 }
 
 KobukiManager::~KobukiManager()
 {
   kobuki.setBaseControl(0,0); // linear_velocity, angular_velocity in (m/s), (rad/s)
   kobuki.disable();
+
+#if !defined(_WIN32)
   tcsetattr(key_file_descriptor, TCSANOW, &original_terminal_state);
+#endif
 }
 
 /**
@@ -216,6 +231,58 @@ void KobukiManager::spin()
  */
 void KobukiManager::keyboardInputLoop()
 {
+  puts("Reading from keyboard");
+  puts("---------------------------");
+  puts("Forward/back arrows : linear velocity incr/decr.");
+  puts("Right/left arrows : angular velocity incr/decr.");
+  puts("Spacebar : reset linear/angular velocities.");
+  puts("q : quit.");
+
+#if defined(_WIN32)
+  const auto tranlateVirtualKeyCodeWorker = [](const KEY_EVENT_RECORD& keyEvent) -> char
+  {
+    static const std::unordered_map<unsigned short, unsigned short> virtualKeyMap =
+    {
+      { 0x25, 0x44 }, // VK_LEFT    -> kobuki_msgs::KeyboardInput::KeyCode_Left
+      { 0x27, 0x43 }, // VK_RIGHT   -> kobuki_msgs::KeyboardInput::KeyCode_Right
+      { 0x26, 0x41 }, // VK_UP      -> kobuki_msgs::KeyboardInput::KeyCode_Up
+      { 0x28, 0x42 }, // VK_DOWN    -> kobuki_msgs::KeyboardInput::KeyCode_Down
+      { 0x20, 0x20 }, // VK_SPACE   -> kobuki_msgs::KeyboardInput::KeyCode_Down
+      { 0x51, 0x71 }, // Q key      -> ASCII q (lowercase)
+      { 0x44, 0x64 }, // D key      -> ASCII d (lowercase)
+      { 0x45, 0x65 }, // E key      -> ASCII e (lowercase)
+    };
+
+    const auto key = virtualKeyMap.find(keyEvent.wVirtualKeyCode);
+    return static_cast<char>(key != virtualKeyMap.end() ? key->second : 0);
+  };
+
+  while (!quit_requested)
+  {
+    HANDLE hInput = ::GetStdHandle(STD_INPUT_HANDLE);
+    DWORD NumInputs = 0;
+    DWORD InputsRead = 0;
+
+    if (!::GetNumberOfConsoleInputEvents(hInput, &NumInputs))
+    {
+      perror("GetNumberOfConsoleInputEvents() failed!");
+      exit(-1);
+    }
+
+    INPUT_RECORD irInput;
+    if (!::ReadConsoleInput(hInput, &irInput, 1, &InputsRead))
+    {
+      perror("ReadConsoleInput() failed!");
+      exit(-1);
+    }
+
+    const KEY_EVENT_RECORD &keyEvent = irInput.Event.KeyEvent;
+    if (keyEvent.wVirtualKeyCode && keyEvent.bKeyDown)
+    {
+      processKeyboardInput(tranlateVirtualKeyCodeWorker(keyEvent));
+    }
+  }
+#else
   struct termios raw;
   memcpy(&raw, &original_terminal_state, sizeof(struct termios));
 
@@ -225,12 +292,6 @@ void KobukiManager::keyboardInputLoop()
   raw.c_cc[VEOF] = 2;
   tcsetattr(key_file_descriptor, TCSANOW, &raw);
 
-  puts("Reading from keyboard");
-  puts("---------------------------");
-  puts("Forward/back arrows : linear velocity incr/decr.");
-  puts("Right/left arrows : angular velocity incr/decr.");
-  puts("Spacebar : reset linear/angular velocities.");
-  puts("q : quit.");
   char c;
   while (!quit_requested)
   {
@@ -241,6 +302,7 @@ void KobukiManager::keyboardInputLoop()
     }
     processKeyboardInput(c);
   }
+#endif
 }
 
 /**

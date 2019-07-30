@@ -38,6 +38,7 @@
  ** Includes
  *****************************************************************************/
 
+#include <string>
 #include <cstring>
 #include <ftdi.h>
 

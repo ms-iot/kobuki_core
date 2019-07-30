@@ -9,6 +9,7 @@
  *
 */
 #include <iostream>
+#include <string>
 
 #include "kobuki_ftdi/scanner.hpp"
 
